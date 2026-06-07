@@ -7,7 +7,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def analyze_with_ai(text, analysis_type):
     prompt = f"""
-You are an AI research assistant specializing in MRI, medical imaging, CNNs, HQNNs, quantum machine learning, and healthcare AI.
+You are an AI research assistant specializing in medical imaging, MRI analysis, CNNs, HQNNs, and healthcare AI.
 
 Analyze the uploaded document and return ONLY valid JSON.
 
@@ -15,6 +15,9 @@ Do not include markdown.
 Do not include explanations outside the JSON.
 Do not invent information.
 If something is missing, write "Not clearly stated".
+
+The field "recommended_search_queries" MUST contain 5 search queries.
+Do not leave it empty.
 
 Return this exact JSON structure:
 
@@ -29,7 +32,13 @@ Return this exact JSON structure:
   "cnn_hqnn_relevance": "",
   "research_gap": "",
   "literature_review_note": "",
-  "recommended_search_queries": [],
+  "recommended_search_queries": [
+    "medical imaging MRI deep learning classification",
+    "CNN MRI classification medical imaging",
+    "hybrid quantum neural network MRI classification",
+    "quantum machine learning medical imaging",
+    "CNN vs HQNN healthcare AI"
+  ],
   "metrics": {{
     "accuracy": "",
     "f1_score": "",
@@ -38,16 +47,8 @@ Return this exact JSON structure:
     "parameters": "",
     "hardware_or_simulation": ""
   }},
-  "keywords": [],
   "overall_summary": ""
 }}
-
-Instructions:
-- Generate 3 to 5 academic search queries for finding related recent literature.
-- Search queries should focus on MRI, medical imaging, CNN, HQNN, quantum machine learning, classification, and healthcare AI when relevant.
-- Generate a clear research gap statement.
-- Generate a literature review note explaining how this paper could be used in a literature review.
-- Keep all answers concise and academic.
 
 Analysis type: {analysis_type}
 
@@ -64,7 +65,19 @@ Document text:
     content = response.choices[0].message.content
 
     try:
-        return json.loads(content)
+        data = json.loads(content)
+
+        if not data.get("recommended_search_queries"):
+            data["recommended_search_queries"] = [
+                "medical imaging MRI deep learning classification",
+                "CNN MRI classification medical imaging",
+                "hybrid quantum neural network MRI classification",
+                "quantum machine learning medical imaging",
+                "CNN vs HQNN healthcare AI"
+            ]
+
+        return data
+
     except json.JSONDecodeError:
         return {
             "research_aim": "Could not parse AI response.",
@@ -77,7 +90,13 @@ Document text:
             "cnn_hqnn_relevance": "Could not parse AI response.",
             "research_gap": "Could not parse AI response.",
             "literature_review_note": "Could not parse AI response.",
-            "recommended_search_queries": [],
+            "recommended_search_queries": [
+                "medical imaging MRI deep learning classification",
+                "CNN MRI classification medical imaging",
+                "hybrid quantum neural network MRI classification",
+                "quantum machine learning medical imaging",
+                "CNN vs HQNN healthcare AI"
+            ],
             "metrics": {
                 "accuracy": "",
                 "f1_score": "",
@@ -86,6 +105,5 @@ Document text:
                 "parameters": "",
                 "hardware_or_simulation": ""
             },
-            "keywords": [],
             "overall_summary": content
         }
