@@ -9,7 +9,7 @@ from literature_search import search_semantic_scholar
 
 load_dotenv()
 
-APP_VERSION = "0.3.0"
+APP_VERSION = "0.4.1"
 
 st.set_page_config(
     page_title="ResearchIQ",
@@ -51,21 +51,21 @@ st.markdown(
         opacity: 0.7;
     }
 
-    .upload-card {
-        background: #f8fafc;
+    .upload-card, .metric-card, .section-card {
+        background: white;
         border: 1px solid #e5e7eb;
-        border-radius: 20px;
-        padding: 1.4rem;
+        border-radius: 18px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
         margin-bottom: 1rem;
     }
 
+    .upload-card {
+        background: #f8fafc;
+    }
+
     .metric-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 1rem;
         min-height: 100px;
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
     }
 
     .metric-label {
@@ -87,16 +87,6 @@ st.markdown(
         margin-top: 2rem;
         margin-bottom: 1rem;
         color: #0f172a;
-    }
-
-    .section-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        padding: 1.25rem;
-        min-height: 210px;
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
-        margin-bottom: 1rem;
     }
 
     .card-title {
@@ -149,24 +139,16 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-upload_col, type_col = st.columns([2, 1])
+uploaded_file = st.file_uploader(
+    "PDF document",
+    type=["pdf"],
+    label_visibility="collapsed"
+)
 
-with upload_col:
-    uploaded_file = st.file_uploader(
-        "PDF document",
-        type=["pdf"],
-        label_visibility="collapsed"
-    )
-
-with type_col:
-    analysis_type = st.selectbox(
-        "Analysis type",
-        [
-            "Research Paper Analysis",
-            "MRI Report Summary",
-            "CNN/HQNN Comparison Extraction"
-        ]
-    )
+generate_summary = st.button(
+    "Generate Research Summary",
+    use_container_width=True
+)
 
 if uploaded_file is None:
     st.info("Upload a PDF to begin.")
@@ -186,18 +168,16 @@ if not extracted_text.strip():
 with st.expander("Preview extracted text"):
     st.write(extracted_text[:3000])
 
-if st.button("Analyze Document", use_container_width=True):
+if generate_summary:
     with st.spinner("Analyzing document with AI..."):
-        result = analyze_with_ai(extracted_text, analysis_type)
+        result = analyze_with_ai(extracted_text, "Research Paper Analysis")
 
     st.session_state["analysis_result"] = result
-    st.session_state["analysis_type"] = analysis_type
 
 if "analysis_result" not in st.session_state:
     st.stop()
 
 result = st.session_state["analysis_result"]
-analysis_type = st.session_state["analysis_type"]
 metrics = result.get("metrics", {})
 
 st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsafe_allow_html=True)
@@ -206,10 +186,10 @@ metric_col1, metric_col2, metric_col3 = st.columns(3)
 
 with metric_col1:
     st.markdown(
-        f"""
+        """
         <div class="metric-card">
             <div class="metric-label">Analysis Type</div>
-            <div class="metric-value">{analysis_type}</div>
+            <div class="metric-value">Research Paper Analysis</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -231,6 +211,7 @@ with metric_col2:
 
 with metric_col3:
     hardware = metrics.get("hardware_or_simulation", "Not clearly stated")
+
     st.markdown(
         f"""
         <div class="metric-card">
@@ -337,7 +318,7 @@ with tab4:
 st.markdown('<div class="section-title">Literature Review Support</div>', unsafe_allow_html=True)
 
 tab_gap, tab_note, tab_search = st.tabs(
-    ["Research Gap", "Literature Review Note", "Find Related Papers"]
+    ["Research Gap", "Literature Review Note", "Find Similar Papers"]
 )
 
 with tab_gap:
@@ -349,72 +330,78 @@ with tab_note:
 with tab_search:
     search_queries = result.get("recommended_search_queries", [])
 
-    if search_queries:
-        selected_query = st.selectbox(
-            "AI-generated search query",
-            search_queries
+    if not search_queries:
+        search_queries = [
+            "medical imaging MRI deep learning classification",
+            "CNN MRI classification medical imaging",
+            "hybrid quantum neural network MRI classification",
+            "quantum machine learning medical imaging",
+            "CNN vs HQNN healthcare AI"
+        ]
+
+    selected_query = st.selectbox(
+        "AI-generated search query",
+        search_queries
+    )
+
+    filter_col1, filter_col2, filter_col3 = st.columns(3)
+
+    with filter_col1:
+        from_year = st.number_input(
+            "From year",
+            min_value=2015,
+            max_value=2026,
+            value=2021
         )
 
-        filter_col1, filter_col2, filter_col3 = st.columns(3)
+    with filter_col2:
+        min_citations = st.number_input(
+            "Minimum citations",
+            min_value=0,
+            max_value=1000,
+            value=10
+        )
 
-        with filter_col1:
-            from_year = st.number_input(
-                "From year",
-                min_value=2015,
-                max_value=2026,
-                value=2021
+    with filter_col3:
+        result_limit = st.selectbox(
+            "Number of papers",
+            [5, 10, 15, 20],
+            index=1
+        )
+
+    if st.button("Search Related Literature", use_container_width=True):
+        with st.spinner("Searching related literature..."):
+            papers = search_semantic_scholar(
+                selected_query,
+                limit=result_limit,
+                from_year=from_year,
+                min_citations=min_citations
             )
 
-        with filter_col2:
-            min_citations = st.number_input(
-                "Minimum citations",
-                min_value=0,
-                max_value=1000,
-                value=10
-            )
+        if papers:
+            related_papers = []
 
-        with filter_col3:
-            result_limit = st.selectbox(
-                "Number of papers",
-                [5, 10, 15, 20],
-                index=1
-            )
-
-        if st.button("Find Related Papers", use_container_width=True):
-            with st.spinner("Searching related literature..."):
-                papers = search_semantic_scholar(
-                    selected_query,
-                    limit=result_limit,
-                    from_year=from_year,
-                    min_citations=min_citations
+            for paper in papers:
+                authors = paper.get("authors", [])
+                author_names = ", ".join(
+                    [author.get("name", "") for author in authors[:3]]
                 )
 
-            if papers:
-                related_papers = []
+                related_papers.append(
+                    {
+                        "Title": paper.get("title", "Not available"),
+                        "Year": paper.get("year", "Not available"),
+                        "Authors": author_names,
+                        "Venue": paper.get("venue", "Not available"),
+                        "Citations": paper.get("citationCount", 0),
+                        "URL": paper.get("url", "")
+                    }
+                )
 
-                for paper in papers:
-                    authors = paper.get("authors", [])
-                    author_names = ", ".join(
-                        [author.get("name", "") for author in authors[:3]]
-                    )
-
-                    related_papers.append(
-                        {
-                            "Title": paper.get("title", "Not available"),
-                            "Year": paper.get("year", "Not available"),
-                            "Authors": author_names,
-                            "Venue": paper.get("venue", "Not available"),
-                            "Citations": paper.get("citationCount", 0),
-                            "URL": paper.get("url", "")
-                        }
-                    )
-
-                papers_df = pd.DataFrame(related_papers)
-                st.dataframe(papers_df, use_container_width=True, hide_index=True)
-            else:
-                st.warning("No related papers found with the selected filters.")
-    else:
-        st.info("No literature search queries were generated.")
+            papers_df = pd.DataFrame(related_papers)
+            st.dataframe(papers_df, use_container_width=True, hide_index=True)
+        else:
+            st.warning("No related papers found with the selected filters.")
 
 st.markdown(
     """
