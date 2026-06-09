@@ -60,6 +60,7 @@ def build_document_sample(text, max_chars=45000):
 def fallback_response(content="Could not parse AI response."):
     return {
         "paper_topic": "Could not parse AI response.",
+        "research_type": "Could not parse AI response.",
         "research_aim": content,
         "dataset": "Could not parse AI response.",
         "methodology": "Could not parse AI response.",
@@ -85,11 +86,22 @@ Analyze the uploaded academic paper and return ONLY valid JSON.
 
 Important:
 - First identify the actual topic of the uploaded paper.
+- Identify the research type.
+- Choose exactly one research type from this list:
+  "AI / Machine Learning",
+  "Experimental / Quantitative",
+  "Qualitative / Interview-based",
+  "Survey-based",
+  "Systematic Literature Review",
+  "Mixed Methods",
+  "Theoretical / Conceptual",
+  "Other".
 - Do not assume the paper is about MRI, CNNs, HQNNs, healthcare, or medical imaging unless the document clearly says so.
 - Do not analyze only the abstract or introduction.
 - Use the beginning, middle, and end of the document.
 - Look for research aim, topic, dataset/sample, methodology, results, limitations, conclusion, and future work.
-- If the paper is not about AI, leave AI-specific fields as "Not applicable".
+- Only fill AI model architecture and AI metrics if the paper actually uses an AI or machine learning model.
+- If the paper is not about AI or machine learning, write "Not applicable" for AI model architecture and AI metrics.
 - Do not include markdown.
 - Do not include explanations outside the JSON.
 - Do not invent information.
@@ -102,6 +114,7 @@ Return this exact JSON structure:
 
 {{
   "paper_topic": "",
+  "research_type": "",
   "research_aim": "",
   "dataset": "",
   "methodology": "",
@@ -144,6 +157,8 @@ Document text:
 
         content = response.choices[0].message.content
         data = json.loads(content)
+
+        data.setdefault("research_type", "Not clearly stated")
 
         if not data.get("recommended_search_queries"):
             data["recommended_search_queries"] = DEFAULT_SEARCH_QUERIES
