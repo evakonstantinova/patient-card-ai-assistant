@@ -1,11 +1,34 @@
 import os
 import json
+from dotenv import load_dotenv
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+load_dotenv()
+
+
+DEFAULT_SEARCH_QUERIES = [
+    "medical imaging MRI deep learning classification",
+    "CNN MRI classification medical imaging",
+    "hybrid quantum neural network MRI classification",
+    "quantum machine learning medical imaging",
+    "CNN vs HQNN healthcare AI"
+]
+
+
+def get_openai_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    if not api_key:
+        raise ValueError(
+            "OPENAI_API_KEY not found. Please create a .env file and add your OpenAI API key."
+        )
+
+    return OpenAI(api_key=api_key)
 
 
 def analyze_with_ai(text, analysis_type):
+    client = get_openai_client()
+
     prompt = f"""
 You are an AI research assistant specializing in medical imaging, MRI analysis, CNNs, HQNNs, and healthcare AI.
 
@@ -58,7 +81,9 @@ Document text:
 
     response = client.chat.completions.create(
         model="gpt-4.1-mini",
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
         temperature=0.2
     )
 
@@ -68,13 +93,17 @@ Document text:
         data = json.loads(content)
 
         if not data.get("recommended_search_queries"):
-            data["recommended_search_queries"] = [
-                "medical imaging MRI deep learning classification",
-                "CNN MRI classification medical imaging",
-                "hybrid quantum neural network MRI classification",
-                "quantum machine learning medical imaging",
-                "CNN vs HQNN healthcare AI"
-            ]
+            data["recommended_search_queries"] = DEFAULT_SEARCH_QUERIES
+
+        if "metrics" not in data:
+            data["metrics"] = {
+                "accuracy": "",
+                "f1_score": "",
+                "precision": "",
+                "recall": "",
+                "parameters": "",
+                "hardware_or_simulation": ""
+            }
 
         return data
 
@@ -90,13 +119,7 @@ Document text:
             "cnn_hqnn_relevance": "Could not parse AI response.",
             "research_gap": "Could not parse AI response.",
             "literature_review_note": "Could not parse AI response.",
-            "recommended_search_queries": [
-                "medical imaging MRI deep learning classification",
-                "CNN MRI classification medical imaging",
-                "hybrid quantum neural network MRI classification",
-                "quantum machine learning medical imaging",
-                "CNN vs HQNN healthcare AI"
-            ],
+            "recommended_search_queries": DEFAULT_SEARCH_QUERIES,
             "metrics": {
                 "accuracy": "",
                 "f1_score": "",
