@@ -227,6 +227,7 @@ if "analysis_result" not in st.session_state:
     st.stop()
 
 result = st.session_state["analysis_result"]
+st.write("Research type:", result.get("research_type", "Not found"))
 metrics = result.get("metrics", {}) or {}
 
 st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsafe_allow_html=True)
