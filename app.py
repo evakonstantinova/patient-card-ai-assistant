@@ -1,4 +1,5 @@
 import os
+import html
 import streamlit as st
 from dotenv import load_dotenv
 import pandas as pd
@@ -9,14 +10,14 @@ from literature_search import search_semantic_scholar
 
 load_dotenv()
 
-APP_VERSION = "0.5.0"
+
 
 DEFAULT_SEARCH_QUERIES = [
-    "medical imaging MRI deep learning classification",
-    "CNN MRI classification medical imaging",
-    "hybrid quantum neural network MRI classification",
-    "quantum machine learning medical imaging",
-    "CNN vs HQNN healthcare AI"
+    "academic research methodology",
+    "literature review related studies",
+    "empirical research findings",
+    "research limitations future work",
+    "systematic review related topic"
 ]
 
 st.set_page_config(
@@ -58,15 +59,30 @@ st.markdown(
         margin-bottom: 0.9rem;
     }
 
-    .hero-note {
-        display: inline-block;
-        font-size: 0.82rem;
-        opacity: 0.85;
-        background: rgba(255,255,255,0.10);
-        border: 1px solid rgba(255,255,255,0.14);
-        border-radius: 999px;
-        padding: 0.45rem 0.75rem;
-    }
+    .hero {
+    background: linear-gradient(135deg, #111827 0%, #1e293b 55%, #334155 100%);
+    padding: 3rem;
+    border-radius: 28px;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.7rem;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.92;
+    max-width: 850px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
 
     .upload-card, .metric-card, .section-card {
         background: #ffffff;
@@ -82,7 +98,7 @@ st.markdown(
     }
 
     .metric-card {
-        min-height: 118px;
+        min-height: 175px;
         padding: 1.25rem;
         margin-bottom: 1rem;
     }
@@ -97,10 +113,13 @@ st.markdown(
     }
 
     .metric-value {
-        font-size: 1.08rem;
-        font-weight: 800;
-        line-height: 1.35;
+        font-size: 1.02rem;
+        font-weight: 760;
+        line-height: 1.45;
         color: #0f172a;
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .section-title {
@@ -128,6 +147,8 @@ st.markdown(
         font-size: 0.97rem;
         line-height: 1.65;
         color: #334155;
+        white-space: normal;
+        overflow-wrap: break-word;
     }
 
     .footer-note {
@@ -150,32 +171,133 @@ st.markdown(
 def clean_value(value, fallback="Not clearly stated"):
     if value is None:
         return fallback
+
     value = str(value).strip()
-    return value if value else fallback
 
+    if not value:
+        return fallback
 
-def short_value(value, limit=95):
-    value = clean_value(value)
-    if len(value) > limit:
-        return value[:limit].rstrip() + "..."
     return value
 
 
+def html_value(value, fallback="Not clearly stated"):
+    return html.escape(clean_value(value, fallback))
+
+
+def is_not_applicable(value):
+    value = clean_value(value, "").lower()
+    return value in ["", "not applicable", "not clearly stated", "n/a", "none"]
+
+
+def is_ai_paper(result):
+    research_type = clean_value(result.get("research_type"), "").lower()
+    architecture = clean_value(result.get("ai_model_architecture"), "").lower()
+
+    if "ai" in research_type or "machine learning" in research_type:
+        return True
+
+    if architecture and architecture not in ["not applicable", "not clearly stated", "n/a", "none"]:
+        return True
+
+    return False
+
+
+def build_study_details(result, metrics):
+    research_type = clean_value(result.get("research_type"))
+
+    if "AI / Machine Learning" in research_type:
+        return pd.DataFrame(
+            [
+                {"Detail": "AI Model / Architecture", "Value": clean_value(result.get("ai_model_architecture"), "Not applicable")},
+                {"Detail": "Accuracy", "Value": clean_value(metrics.get("accuracy"), "Not clearly stated")},
+                {"Detail": "F1 Score", "Value": clean_value(metrics.get("f1_score"), "Not clearly stated")},
+                {"Detail": "Precision", "Value": clean_value(metrics.get("precision"), "Not clearly stated")},
+                {"Detail": "Recall", "Value": clean_value(metrics.get("recall"), "Not clearly stated")},
+                {"Detail": "Parameters", "Value": clean_value(metrics.get("parameters"), "Not clearly stated")},
+                {"Detail": "Hardware / Simulation", "Value": clean_value(metrics.get("hardware_or_simulation"), "Not clearly stated")},
+            ]
+        )
+
+    if "Qualitative" in research_type:
+        return pd.DataFrame(
+            [
+                {"Detail": "Research Type", "Value": research_type},
+                {"Detail": "Participants / Sample", "Value": clean_value(result.get("dataset"))},
+                {"Detail": "Data Collection", "Value": clean_value(result.get("methodology"))},
+                {"Detail": "Main Themes / Findings", "Value": clean_value(result.get("key_results"))},
+                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+            ]
+        )
+
+    if "Survey" in research_type:
+        return pd.DataFrame(
+            [
+                {"Detail": "Research Type", "Value": research_type},
+                {"Detail": "Sample / Respondents", "Value": clean_value(result.get("dataset"))},
+                {"Detail": "Survey Method", "Value": clean_value(result.get("methodology"))},
+                {"Detail": "Main Results", "Value": clean_value(result.get("key_results"))},
+                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+            ]
+        )
+
+    if "Systematic Literature Review" in research_type:
+        return pd.DataFrame(
+            [
+                {"Detail": "Research Type", "Value": research_type},
+                {"Detail": "Studies / Sources Reviewed", "Value": clean_value(result.get("dataset"))},
+                {"Detail": "Review Method", "Value": clean_value(result.get("methodology"))},
+                {"Detail": "Main Findings", "Value": clean_value(result.get("key_results"))},
+                {"Detail": "Research Gap", "Value": clean_value(result.get("research_gap"))},
+            ]
+        )
+
+    if "Experimental" in research_type or "Quantitative" in research_type:
+        return pd.DataFrame(
+            [
+                {"Detail": "Research Type", "Value": research_type},
+                {"Detail": "Dataset / Sample", "Value": clean_value(result.get("dataset"))},
+                {"Detail": "Experimental Design / Method", "Value": clean_value(result.get("methodology"))},
+                {"Detail": "Key Results", "Value": clean_value(result.get("key_results"))},
+                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+            ]
+        )
+
+    if "Mixed Methods" in research_type:
+      return pd.DataFrame(
+[
+{"Detail": "Research Type", "Value": research_type},
+{"Detail": "Dataset / Participants", "Value": clean_value(result.get("dataset"))},
+{"Detail": "Mixed Methods Design", "Value": clean_value(result.get("methodology"))},
+{"Detail": "Main Findings", "Value": clean_value(result.get("key_results"))},
+{"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+]
+)
+
+
+    return pd.DataFrame(
+        [
+            {"Detail": "Research Type", "Value": research_type},
+            {"Detail": "Dataset / Sample", "Value": clean_value(result.get("dataset"))},
+            {"Detail": "Methodology", "Value": clean_value(result.get("methodology"))},
+            {"Detail": "Key Results", "Value": clean_value(result.get("key_results"))},
+            {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+        ]
+    )
+
 st.markdown(
-    f"""
+    """
     <div class="hero">
         <div class="hero-title">ResearchIQ</div>
         <div class="hero-subtitle">
-            Upload a research paper and generate a structured summary, extracted methods and results,
-            literature review notes, and related-paper search queries.
-        </div>
-        <div class="hero-note">
-            Version {APP_VERSION} · Research support tool · Not for medical diagnosis
+            Your personal AI research assistant for analyzing papers, exploring literature,
+            generating research insights, and discovering relevant academic publications.
         </div>
     </div>
     """,
     unsafe_allow_html=True
 )
+
+
 
 st.markdown(
     """
@@ -227,8 +349,8 @@ if "analysis_result" not in st.session_state:
     st.stop()
 
 result = st.session_state["analysis_result"]
-st.write("Research type:", result.get("research_type", "Not found"))
 metrics = result.get("metrics", {}) or {}
+research_type = clean_value(result.get("research_type"))
 
 st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsafe_allow_html=True)
 
@@ -238,8 +360,8 @@ with metric_col1:
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">Paper Focus</div>
-            <div class="metric-value">{short_value(result.get("research_aim"), 105)}</div>
+            <div class="metric-label">Paper Topic</div>
+            <div class="metric-value">{html_value(result.get("paper_topic"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -249,8 +371,8 @@ with metric_col2:
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">Model / Architecture</div>
-            <div class="metric-value">{short_value(result.get("ai_model_architecture"), 105)}</div>
+            <div class="metric-label">Research Type</div>
+            <div class="metric-value">{html.escape(research_type)}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -260,8 +382,8 @@ with metric_col3:
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">Dataset</div>
-            <div class="metric-value">{short_value(result.get("dataset"), 105)}</div>
+            <div class="metric-label">Dataset / Sample</div>
+            <div class="metric-value">{html_value(result.get("dataset"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -276,7 +398,7 @@ with overview_col1:
         f"""
         <div class="section-card">
             <div class="card-title">Research Aim</div>
-            <div class="card-text">{clean_value(result.get("research_aim"))}</div>
+            <div class="card-text">{html_value(result.get("research_aim"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -285,8 +407,8 @@ with overview_col1:
     st.markdown(
         f"""
         <div class="section-card">
-            <div class="card-title">Dataset</div>
-            <div class="card-text">{clean_value(result.get("dataset"))}</div>
+            <div class="card-title">Methodology</div>
+            <div class="card-text">{html_value(result.get("methodology"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -296,24 +418,35 @@ with overview_col2:
     st.markdown(
         f"""
         <div class="section-card">
-            <div class="card-title">Methodology</div>
-            <div class="card-text">{clean_value(result.get("methodology"))}</div>
+            <div class="card-title">Dataset / Sample</div>
+            <div class="card-text">{html_value(result.get("dataset"))}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">AI Model / Architecture</div>
-            <div class="card-text">{clean_value(result.get("ai_model_architecture"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    if is_ai_paper(result):
+        st.markdown(
+            f"""
+            <div class="section-card">
+                <div class="card-title">AI Model / Architecture</div>
+                <div class="card-text">{html_value(result.get("ai_model_architecture"), "Not applicable")}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f"""
+            <div class="section-card">
+                <div class="card-title">Overall Summary</div>
+                <div class="card-text">{html_value(result.get("overall_summary"))}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-st.markdown('<div class="section-title">Results and Metrics</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Results and Study Details</div>', unsafe_allow_html=True)
 
 result_col1, result_col2 = st.columns([1.25, 1])
 
@@ -322,24 +455,22 @@ with result_col1:
         f"""
         <div class="section-card">
             <div class="card-title">Key Results</div>
-            <div class="card-text">{clean_value(result.get("key_results"))}</div>
+            <div class="card-text">{html_value(result.get("key_results"))}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
 with result_col2:
-    metrics_df = pd.DataFrame(
-        [
-            {"Metric": "Accuracy", "Value": clean_value(metrics.get("accuracy"))},
-            {"Metric": "F1 Score", "Value": clean_value(metrics.get("f1_score"))},
-            {"Metric": "Precision", "Value": clean_value(metrics.get("precision"))},
-            {"Metric": "Recall", "Value": clean_value(metrics.get("recall"))},
-            {"Metric": "Parameters", "Value": clean_value(metrics.get("parameters"))},
-            {"Metric": "Hardware / Simulation", "Value": clean_value(metrics.get("hardware_or_simulation"))},
-        ]
-    )
-    st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+    study_details_df = build_study_details(result, metrics)
+    study_details_df["Value"] = study_details_df["Value"].astype(str)
+
+st.dataframe(
+    study_details_df,
+    use_container_width=True,
+    hide_index=True,
+    height=450
+)
 
 st.markdown('<div class="section-title">Literature Review Support</div>', unsafe_allow_html=True)
 
@@ -353,7 +484,7 @@ with tab_note:
         f"""
         <div class="section-card">
             <div class="card-title">Research Gap</div>
-            <div class="card-text">{clean_value(result.get("research_gap"))}</div>
+            <div class="card-text">{html_value(result.get("research_gap"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -363,7 +494,7 @@ with tab_note:
         f"""
         <div class="section-card">
             <div class="card-title">Literature Review Note</div>
-            <div class="card-text">{clean_value(result.get("literature_review_note"))}</div>
+            <div class="card-text">{html_value(result.get("literature_review_note"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -427,6 +558,7 @@ with tab_search:
                         "Authors": author_names if author_names else "Not available",
                         "Venue": paper.get("venue", "Not available"),
                         "Citations": paper.get("citationCount", 0),
+                        "Source": paper.get("source", "Not available"),
                         "URL": paper.get("url", "")
                     }
                 )
