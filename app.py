@@ -9,7 +9,15 @@ from literature_search import search_semantic_scholar
 
 load_dotenv()
 
-APP_VERSION = "0.4.1"
+APP_VERSION = "0.5.0"
+
+DEFAULT_SEARCH_QUERIES = [
+    "medical imaging MRI deep learning classification",
+    "CNN MRI classification medical imaging",
+    "hybrid quantum neural network MRI classification",
+    "quantum machine learning medical imaging",
+    "CNN vs HQNN healthcare AI"
+]
 
 st.set_page_config(
     page_title="ResearchIQ",
@@ -21,84 +29,104 @@ st.markdown(
     """
     <style>
     .block-container {
-        max-width: 1250px;
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
+        max-width: 1180px;
+        padding-top: 1.2rem;
+        padding-bottom: 2.5rem;
     }
 
     .hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        padding: 2.2rem;
-        border-radius: 24px;
+        background: linear-gradient(135deg, #111827 0%, #1e293b 55%, #334155 100%);
+        padding: 2.4rem;
+        border-radius: 26px;
         color: white;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
     }
 
     .hero-title {
-        font-size: 3rem;
-        font-weight: 800;
-        margin-bottom: 0.4rem;
+        font-size: 3.1rem;
+        font-weight: 850;
+        letter-spacing: -0.04em;
+        margin-bottom: 0.35rem;
     }
 
     .hero-subtitle {
-        font-size: 1.15rem;
-        opacity: 0.9;
-        margin-bottom: 0.8rem;
+        font-size: 1.08rem;
+        opacity: 0.92;
+        max-width: 760px;
+        line-height: 1.6;
+        margin-bottom: 0.9rem;
     }
 
     .hero-note {
-        font-size: 0.85rem;
-        opacity: 0.7;
+        display: inline-block;
+        font-size: 0.82rem;
+        opacity: 0.85;
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 999px;
+        padding: 0.45rem 0.75rem;
     }
 
     .upload-card, .metric-card, .section-card {
-        background: white;
+        background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        padding: 1.25rem;
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
-        margin-bottom: 1rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
     }
 
     .upload-card {
         background: #f8fafc;
+        padding: 1.35rem;
+        margin-bottom: 1.1rem;
     }
 
     .metric-card {
-        min-height: 100px;
+        min-height: 118px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
     }
 
     .metric-label {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         color: #64748b;
-        font-weight: 600;
-        margin-bottom: 0.4rem;
+        font-weight: 750;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.55rem;
     }
 
     .metric-value {
-        font-size: 1.15rem;
-        font-weight: 750;
+        font-size: 1.08rem;
+        font-weight: 800;
+        line-height: 1.35;
         color: #0f172a;
     }
 
     .section-title {
-        font-size: 1.6rem;
-        font-weight: 800;
-        margin-top: 2rem;
+        font-size: 1.75rem;
+        font-weight: 850;
+        letter-spacing: -0.035em;
+        margin-top: 2.1rem;
         margin-bottom: 1rem;
         color: #0f172a;
     }
 
+    .section-card {
+        padding: 1.35rem;
+        margin-bottom: 1rem;
+    }
+
     .card-title {
-        font-size: 1.05rem;
-        font-weight: 800;
+        font-size: 1.02rem;
+        font-weight: 850;
         color: #0f172a;
-        margin-bottom: 0.7rem;
+        margin-bottom: 0.65rem;
     }
 
     .card-text {
-        font-size: 0.98rem;
-        line-height: 1.6;
+        font-size: 0.97rem;
+        line-height: 1.65;
         color: #334155;
     }
 
@@ -106,21 +134,43 @@ st.markdown(
         margin-top: 2rem;
         font-size: 0.85rem;
         color: #64748b;
+        text-align: center;
+    }
+
+    div[data-testid="stDataFrame"] {
+        border-radius: 18px;
+        overflow: hidden;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
+
+def clean_value(value, fallback="Not clearly stated"):
+    if value is None:
+        return fallback
+    value = str(value).strip()
+    return value if value else fallback
+
+
+def short_value(value, limit=95):
+    value = clean_value(value)
+    if len(value) > limit:
+        return value[:limit].rstrip() + "..."
+    return value
+
+
 st.markdown(
     f"""
     <div class="hero">
         <div class="hero-title">ResearchIQ</div>
         <div class="hero-subtitle">
-            AI-powered literature analysis for medical imaging and healthcare AI research.
+            Upload a research paper and generate a structured summary, extracted methods and results,
+            literature review notes, and related-paper search queries.
         </div>
         <div class="hero-note">
-            Version {APP_VERSION} · Research prototype only · Not intended for medical diagnosis
+            Version {APP_VERSION} · Research support tool · Not for medical diagnosis
         </div>
     </div>
     """,
@@ -130,9 +180,9 @@ st.markdown(
 st.markdown(
     """
     <div class="upload-card">
-        <h3 style="margin-top:0;">Upload Research Document</h3>
-        <p style="color:#64748b; margin-bottom:0;">
-            Upload an MRI research paper, medical imaging report, or CNN/HQNN study in PDF format.
+        <h3 style="margin-top:0; margin-bottom:0.35rem;">Upload research document</h3>
+        <p style="color:#64748b; margin-bottom:0; line-height:1.55;">
+            Best results come from full-text PDF papers with methodology, results, and conclusion sections.
         </p>
     </div>
     """,
@@ -166,19 +216,18 @@ if not extracted_text.strip():
     st.stop()
 
 with st.expander("Preview extracted text"):
-    st.write(extracted_text[:3000])
+    st.write(extracted_text[:5000])
 
 if generate_summary:
-    with st.spinner("Analyzing document with AI..."):
+    with st.spinner("Analyzing the full paper structure with AI..."):
         result = analyze_with_ai(extracted_text, "Research Paper Analysis")
-
     st.session_state["analysis_result"] = result
 
 if "analysis_result" not in st.session_state:
     st.stop()
 
 result = st.session_state["analysis_result"]
-metrics = result.get("metrics", {})
+metrics = result.get("metrics", {}) or {}
 
 st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsafe_allow_html=True)
 
@@ -186,37 +235,32 @@ metric_col1, metric_col2, metric_col3 = st.columns(3)
 
 with metric_col1:
     st.markdown(
-        """
+        f"""
         <div class="metric-card">
-            <div class="metric-label">Analysis Type</div>
-            <div class="metric-value">Research Paper Analysis</div>
+            <div class="metric-label">Paper Focus</div>
+            <div class="metric-value">{short_value(result.get("research_aim"), 105)}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
 with metric_col2:
-    research_gap = result.get("research_gap", "")
-    gap_status = "Detected" if research_gap and research_gap != "Not clearly stated" else "Not clearly stated"
-
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">Research Gap</div>
-            <div class="metric-value">{gap_status}</div>
+            <div class="metric-label">Model / Architecture</div>
+            <div class="metric-value">{short_value(result.get("ai_model_architecture"), 105)}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
 with metric_col3:
-    hardware = metrics.get("hardware_or_simulation", "Not clearly stated")
-
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-label">Hardware / Simulation</div>
-            <div class="metric-value">{hardware if hardware else "Not clearly stated"}</div>
+            <div class="metric-label">Dataset</div>
+            <div class="metric-value">{short_value(result.get("dataset"), 105)}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -231,7 +275,7 @@ with overview_col1:
         f"""
         <div class="section-card">
             <div class="card-title">Research Aim</div>
-            <div class="card-text">{result.get("research_aim", "Not clearly stated")}</div>
+            <div class="card-text">{clean_value(result.get("research_aim"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -241,7 +285,7 @@ with overview_col1:
         f"""
         <div class="section-card">
             <div class="card-title">Dataset</div>
-            <div class="card-text">{result.get("dataset", "Not clearly stated")}</div>
+            <div class="card-text">{clean_value(result.get("dataset"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -252,7 +296,7 @@ with overview_col2:
         f"""
         <div class="section-card">
             <div class="card-title">Methodology</div>
-            <div class="card-text">{result.get("methodology", "Not clearly stated")}</div>
+            <div class="card-text">{clean_value(result.get("methodology"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -262,7 +306,7 @@ with overview_col2:
         f"""
         <div class="section-card">
             <div class="card-title">AI Model / Architecture</div>
-            <div class="card-text">{result.get("ai_model_architecture", "Not clearly stated")}</div>
+            <div class="card-text">{clean_value(result.get("ai_model_architecture"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -270,14 +314,14 @@ with overview_col2:
 
 st.markdown('<div class="section-title">Results and Metrics</div>', unsafe_allow_html=True)
 
-result_col1, result_col2 = st.columns([1.2, 1])
+result_col1, result_col2 = st.columns([1.25, 1])
 
 with result_col1:
     st.markdown(
         f"""
         <div class="section-card">
             <div class="card-title">Key Results</div>
-            <div class="card-text">{result.get("key_results", "Not clearly stated")}</div>
+            <div class="card-text">{clean_value(result.get("key_results"))}</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -286,58 +330,46 @@ with result_col1:
 with result_col2:
     metrics_df = pd.DataFrame(
         [
-            {"Metric": "Accuracy", "Value": metrics.get("accuracy", "Not clearly stated")},
-            {"Metric": "F1 Score", "Value": metrics.get("f1_score", "Not clearly stated")},
-            {"Metric": "Precision", "Value": metrics.get("precision", "Not clearly stated")},
-            {"Metric": "Recall", "Value": metrics.get("recall", "Not clearly stated")},
-            {"Metric": "Parameters", "Value": metrics.get("parameters", "Not clearly stated")},
-            {"Metric": "Hardware / Simulation", "Value": metrics.get("hardware_or_simulation", "Not clearly stated")},
+            {"Metric": "Accuracy", "Value": clean_value(metrics.get("accuracy"))},
+            {"Metric": "F1 Score", "Value": clean_value(metrics.get("f1_score"))},
+            {"Metric": "Precision", "Value": clean_value(metrics.get("precision"))},
+            {"Metric": "Recall", "Value": clean_value(metrics.get("recall"))},
+            {"Metric": "Parameters", "Value": clean_value(metrics.get("parameters"))},
+            {"Metric": "Hardware / Simulation", "Value": clean_value(metrics.get("hardware_or_simulation"))},
         ]
     )
-
     st.dataframe(metrics_df, use_container_width=True, hide_index=True)
-
-st.markdown('<div class="section-title">Research Interpretation</div>', unsafe_allow_html=True)
-
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["Limitations", "Clinical Implications", "CNN/HQNN Relevance", "Overall Summary"]
-)
-
-with tab1:
-    st.write(result.get("limitations", "Not clearly stated"))
-
-with tab2:
-    st.write(result.get("clinical_implications", "Not clearly stated"))
-
-with tab3:
-    st.write(result.get("cnn_hqnn_relevance", "Not clearly stated"))
-
-with tab4:
-    st.write(result.get("overall_summary", "Not clearly stated"))
 
 st.markdown('<div class="section-title">Literature Review Support</div>', unsafe_allow_html=True)
 
-tab_gap, tab_note, tab_search = st.tabs(
-    ["Research Gap", "Literature Review Note", "Find Similar Papers"]
-)
-
-with tab_gap:
-    st.write(result.get("research_gap", "Not clearly stated"))
+tab_note, tab_search = st.tabs([
+    "Research Gap & Literature Note",
+    "Find Similar Papers"
+])
 
 with tab_note:
-    st.write(result.get("literature_review_note", "Not clearly stated"))
+    st.markdown(
+        f"""
+        <div class="section-card">
+            <div class="card-title">Research Gap</div>
+            <div class="card-text">{clean_value(result.get("research_gap"))}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"""
+        <div class="section-card">
+            <div class="card-title">Literature Review Note</div>
+            <div class="card-text">{clean_value(result.get("literature_review_note"))}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 with tab_search:
-    search_queries = result.get("recommended_search_queries", [])
-
-    if not search_queries:
-        search_queries = [
-            "medical imaging MRI deep learning classification",
-            "CNN MRI classification medical imaging",
-            "hybrid quantum neural network MRI classification",
-            "quantum machine learning medical imaging",
-            "CNN vs HQNN healthcare AI"
-        ]
+    search_queries = result.get("recommended_search_queries", []) or DEFAULT_SEARCH_QUERIES
 
     selected_query = st.selectbox(
         "AI-generated search query",
@@ -351,7 +383,7 @@ with tab_search:
             "From year",
             min_value=2015,
             max_value=2026,
-            value=2021
+            value=2018
         )
 
     with filter_col2:
@@ -359,7 +391,7 @@ with tab_search:
             "Minimum citations",
             min_value=0,
             max_value=1000,
-            value=10
+            value=0
         )
 
     with filter_col3:
@@ -382,16 +414,16 @@ with tab_search:
             related_papers = []
 
             for paper in papers:
-                authors = paper.get("authors", [])
+                authors = paper.get("authors", []) or []
                 author_names = ", ".join(
-                    [author.get("name", "") for author in authors[:3]]
+                    [author.get("name", "") for author in authors[:3] if author.get("name")]
                 )
 
                 related_papers.append(
                     {
                         "Title": paper.get("title", "Not available"),
                         "Year": paper.get("year", "Not available"),
-                        "Authors": author_names,
+                        "Authors": author_names if author_names else "Not available",
                         "Venue": paper.get("venue", "Not available"),
                         "Citations": paper.get("citationCount", 0),
                         "URL": paper.get("url", "")
@@ -401,13 +433,12 @@ with tab_search:
             papers_df = pd.DataFrame(related_papers)
             st.dataframe(papers_df, use_container_width=True, hide_index=True)
         else:
-            st.warning("No related papers found with the selected filters.")
+            st.warning("No related papers found with the selected filters. Try an earlier year or broader query.")
 
 st.markdown(
     """
     <div class="footer-note">
-        This dashboard is generated using AI and should be reviewed critically.
-        It is designed for research support, not clinical decision-making.
+        AI-generated research support output. Review all summaries and related-paper results critically before using them academically.
     </div>
     """,
     unsafe_allow_html=True
