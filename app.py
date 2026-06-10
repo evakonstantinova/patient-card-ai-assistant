@@ -278,18 +278,28 @@ result = st.session_state["analysis_result"]
 metrics = result.get("metrics", {}) or {}
 research_type = clean_value(result.get("research_type"))
 
+docx_file = create_docx_report(
+    result,
+    research_type
+)
+
 st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsafe_allow_html=True)
 
-metric_col1, metric_col2, metric_col3 = st.columns(3)
+st.download_button(
+    label="📄 Export Summary to Word",
+    data=docx_file,
+    file_name="researchiq_summary.docx",
+    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    use_container_width=True
+)
+
+metric_col1, metric_col2 = st.columns([1.4, 1])
 
 with metric_col1:
     render_metric_card("Paper Topic", result.get("paper_topic"))
 
 with metric_col2:
     render_metric_card("Research Type", research_type)
-
-with metric_col3:
-    render_metric_card("Dataset / Sample", result.get("dataset"))
 
 st.markdown('<div class="section-title">Paper Overview</div>', unsafe_allow_html=True)
 

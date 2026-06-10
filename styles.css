@@ -75,8 +75,8 @@
     }
 
     .metric-card {
-        min-height: 190px;
-        padding: 1.25rem;
+        min-height: 240px;
+        padding: 1.75rem;
         margin-bottom: 1rem;
         display: flex;
         flex-direction: column;
@@ -92,15 +92,15 @@
         letter-spacing: 0.055em;
     }
 
-    .metric-value {
-    font-size: 0.96rem;
+     .metric-value {
+    font-size: 1.1rem;
     font-weight: 740;
-    line-height: 1.55;
+    line-height: 1.65;
     color: var(--text);
     overflow: hidden;
-
     display: -webkit-box;
-    -webkit-line-clamp: 4;
+    line-clamp: 5;
+    -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
 }
     .section-title {
