@@ -4,6 +4,8 @@ import streamlit as st
 from dotenv import load_dotenv
 import pandas as pd
 
+from io import BytesIO
+from docx import Document
 from ai_analyzer import analyze_with_ai
 from pdf_utils import extract_pdf_text
 from literature_search import search_semantic_scholar
@@ -126,6 +128,31 @@ def build_study_details(result, metrics):
         ("Research Gap", clean_value(result.get("research_gap"))),
     ]
 
+def create_docx_report(result, research_type):
+    doc = Document()
+
+    doc.add_heading("ResearchIQ Paper Summary", level=1)
+
+    sections = {
+        "Paper Topic": result.get("paper_topic"),
+        "Research Type": research_type,
+        "Research Aim": result.get("research_aim"),
+        "Dataset / Sample": result.get("dataset"),
+        "Methodology": result.get("methodology"),
+        get_results_title(research_type): result.get("key_results"),
+        "Limitations": result.get("limitations"),
+        "Overall Summary": result.get("overall_summary"),
+    }
+
+    for title, content in sections.items():
+        doc.add_heading(title, level=2)
+        doc.add_paragraph(clean_value(content))
+
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+
+    return buffer
 
 def render_card(title, body):
     st.markdown(
