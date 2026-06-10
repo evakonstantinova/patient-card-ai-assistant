@@ -10,8 +10,6 @@ from literature_search import search_semantic_scholar
 
 load_dotenv()
 
-
-
 DEFAULT_SEARCH_QUERIES = [
     "academic research methodology",
     "literature review related studies",
@@ -29,106 +27,116 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    :root {
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --soft: #f1f5f9;
+        --border: #e5e7eb;
+        --shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
+        --radius: 22px;
+    }
+
     .block-container {
         max-width: 1180px;
-        padding-top: 1.2rem;
+        padding-top: 1.25rem;
         padding-bottom: 2.5rem;
     }
 
     .hero {
         background: linear-gradient(135deg, #111827 0%, #1e293b 55%, #334155 100%);
-        padding: 2.4rem;
-        border-radius: 26px;
+        padding: 3rem 2.5rem;
+        border-radius: 30px;
         color: white;
         margin-bottom: 1.5rem;
         box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+        text-align: center;
     }
 
     .hero-title {
-        font-size: 3.1rem;
-        font-weight: 850;
-        letter-spacing: -0.04em;
-        margin-bottom: 0.35rem;
+        font-size: 3.5rem;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+        margin-bottom: 0.75rem;
+        line-height: 1;
     }
 
     .hero-subtitle {
         font-size: 1.08rem;
         opacity: 0.92;
-        max-width: 760px;
-        line-height: 1.6;
-        margin-bottom: 0.9rem;
+        max-width: 820px;
+        margin: 0 auto;
+        line-height: 1.75;
     }
 
-    .hero {
-    background: linear-gradient(135deg, #111827 0%, #1e293b 55%, #334155 100%);
-    padding: 3rem;
-    border-radius: 28px;
-    color: white;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
-    text-align: center;
-}
-
-.hero-title {
-    font-size: 3.5rem;
-    font-weight: 900;
-    letter-spacing: -0.05em;
-    margin-bottom: 0.7rem;
-}
-
-.hero-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.92;
-    max-width: 850px;
-    margin: 0 auto;
-    line-height: 1.7;
-}
-
-    .upload-card, .metric-card, .section-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 20px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+    .upload-card,
+    .metric-card,
+    .section-card,
+    .detail-panel,
+    .papers-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
     }
 
     .upload-card {
         background: #f8fafc;
-        padding: 1.35rem;
+        padding: 1.35rem 1.45rem;
         margin-bottom: 1.1rem;
     }
 
-    .metric-card {
-        min-height: 175px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
+    .upload-card h3 {
+        margin-top: 0;
+        margin-bottom: 0.35rem;
+        font-size: 1.08rem;
+        font-weight: 850;
+        color: var(--text);
+        letter-spacing: -0.02em;
     }
 
-    .metric-label {
-        font-size: 0.78rem;
-        color: #64748b;
-        font-weight: 750;
+    .upload-card p {
+        color: var(--muted);
+        margin-bottom: 0;
+        line-height: 1.6;
+        font-size: 0.96rem;
+    }
+
+    .metric-card {
+        min-height: 170px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .metric-label,
+    .detail-label {
+        font-size: 0.76rem;
+        color: var(--muted);
+        font-weight: 850;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.55rem;
+        letter-spacing: 0.055em;
     }
 
     .metric-value {
         font-size: 1.02rem;
-        font-weight: 760;
-        line-height: 1.45;
-        color: #0f172a;
+        font-weight: 740;
+        line-height: 1.5;
+        color: var(--text);
         white-space: normal;
         overflow-wrap: break-word;
-        word-break: normal;
     }
 
     .section-title {
-        font-size: 1.75rem;
-        font-weight: 850;
-        letter-spacing: -0.035em;
-        margin-top: 2.1rem;
+        font-size: 1.72rem;
+        font-weight: 900;
+        letter-spacing: -0.045em;
+        margin-top: 2.15rem;
         margin-bottom: 1rem;
-        color: #0f172a;
+        color: var(--text);
     }
 
     .section-card {
@@ -138,53 +146,137 @@ st.markdown(
 
     .card-title {
         font-size: 1.02rem;
-        font-weight: 850;
-        color: #0f172a;
-        margin-bottom: 0.65rem;
+        font-weight: 875;
+        color: var(--text);
+        margin-bottom: 0.7rem;
+        letter-spacing: -0.015em;
     }
 
     .card-text {
         font-size: 0.97rem;
-        line-height: 1.65;
+        line-height: 1.7;
         color: #334155;
         white-space: normal;
         overflow-wrap: break-word;
     }
-     
-     .detail-card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 1rem 1.1rem;
-    margin-bottom: 0.9rem;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
-}
 
-.detail-label {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.45rem;
-}
+    .detail-panel {
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
 
-.detail-value {
-    font-size: 0.98rem;
-    line-height: 1.6;
-    color: #0f172a;
-    overflow-wrap: break-word;
-}
+    .detail-row {
+        display: grid;
+        grid-template-columns: 35% 65%;
+        border-bottom: 1px solid var(--border);
+        min-height: 64px;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        background: #f8fafc;
+        padding: 1rem;
+        display: flex;
+        align-items: flex-start;
+        line-height: 1.45;
+    }
+
+    .detail-value {
+        padding: 1rem;
+        font-size: 0.96rem;
+        line-height: 1.65;
+        color: var(--text);
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+
+    .papers-card {
+        padding: 1rem;
+        margin-top: 1rem;
+        overflow-x: auto;
+    }
+
+    .papers-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: 0.92rem;
+    }
+
+    .papers-table th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.055em;
+        text-align: left;
+        padding: 0.85rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .papers-table td {
+        padding: 0.9rem 0.85rem;
+        border-bottom: 1px solid var(--border);
+        color: #334155;
+        line-height: 1.5;
+        vertical-align: top;
+        overflow-wrap: anywhere;
+    }
+
+    .papers-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .papers-table tr:hover td {
+        background: #f8fafc;
+    }
+
+    .papers-table a {
+        color: #2563eb;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .papers-table a:hover {
+        text-decoration: underline;
+    }
+
     .footer-note {
         margin-top: 2rem;
         font-size: 0.85rem;
-        color: #64748b;
+        color: var(--muted);
         text-align: center;
+        line-height: 1.6;
     }
 
-    div[data-testid="stDataFrame"] {
-        border-radius: 18px;
-        overflow: hidden;
+    div[data-testid="stButton"] button {
+        border-radius: 14px;
+        font-weight: 800;
+    }
+
+    div[data-baseweb="select"] {
+        border-radius: 14px;
+    }
+
+    @media (max-width: 900px) {
+        .hero {
+            padding: 2.25rem 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 2.6rem;
+        }
+
+        .detail-row {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-label {
+            border-bottom: 1px solid var(--border);
+        }
     }
     </style>
     """,
@@ -198,7 +290,7 @@ def clean_value(value, fallback="Not clearly stated"):
 
     value = str(value).strip()
 
-    if not value:
+    if not value or value.lower() in ["none", "nan", "n/a", "not available", ""]:
         return fallback
 
     return value
@@ -206,11 +298,6 @@ def clean_value(value, fallback="Not clearly stated"):
 
 def html_value(value, fallback="Not clearly stated"):
     return html.escape(clean_value(value, fallback))
-
-
-def is_not_applicable(value):
-    value = clean_value(value, "").lower()
-    return value in ["", "not applicable", "not clearly stated", "n/a", "none"]
 
 
 def is_ai_paper(result):
@@ -226,14 +313,29 @@ def is_ai_paper(result):
     return False
 
 
+def get_results_title(research_type):
+    research_type = clean_value(research_type).lower()
+
+    if "ai" in research_type or "machine learning" in research_type:
+        return "Model Results"
+    if "qualitative" in research_type:
+        return "Main Themes / Findings"
+    if "systematic literature review" in research_type:
+        return "Main Findings"
+    if "mixed methods" in research_type:
+        return "Main Findings"
+
+    return "Key Results"
+
+
 def build_study_details(result, metrics):
     research_type = clean_value(result.get("research_type"))
 
     if "AI / Machine Learning" in research_type:
         return [
             ("Evaluation Metrics", f"Accuracy: {clean_value(metrics.get('accuracy'))}; F1: {clean_value(metrics.get('f1_score'))}; Precision: {clean_value(metrics.get('precision'))}; Recall: {clean_value(metrics.get('recall'))}"),
-            ("Model Complexity", clean_value(metrics.get("parameters"), "Not clearly stated")),
-            ("Execution Setting", clean_value(metrics.get("hardware_or_simulation"), "Not clearly stated")),
+            ("Model Complexity", clean_value(metrics.get("parameters"))),
+            ("Execution Setting", clean_value(metrics.get("hardware_or_simulation"))),
             ("Limitations", clean_value(result.get("limitations"))),
         ]
 
@@ -271,7 +373,68 @@ def build_study_details(result, metrics):
         ("Limitations", clean_value(result.get("limitations"))),
         ("Research Gap", clean_value(result.get("research_gap"))),
     ]
-    
+
+
+def render_card(title, body):
+    st.markdown(
+        f"""
+        <div class="section-card">
+            <div class="card-title">{html.escape(str(title))}</div>
+            <div class="card-text">{html_value(body)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_metric_card(label, value):
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-label">{html.escape(str(label))}</div>
+            <div class="metric-value">{html_value(value)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_detail_panel(rows):
+    rows_html = ""
+
+    for label, value in rows:
+        rows_html += f"""
+        <div class="detail-row">
+            <div class="detail-label">{html.escape(str(label))}</div>
+            <div class="detail-value">{html_value(value)}</div>
+        </div>
+        """
+
+    st.markdown(
+        f"""
+        <div class="detail-panel">
+            {rows_html}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_papers_table(papers_df):
+    st.markdown(
+        f"""
+        <div class="papers-card">
+            {papers_df.to_html(
+                escape=False,
+                index=False,
+                classes="papers-table"
+            )}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
 st.markdown(
     """
     <div class="hero">
@@ -285,15 +448,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-
 st.markdown(
     """
     <div class="upload-card">
-        <h3 style="margin-top:0; margin-bottom:0.35rem;">Upload research document</h3>
-        <p style="color:#64748b; margin-bottom:0; line-height:1.55;">
-            Best results come from full-text PDF papers with methodology, results, and conclusion sections.
-        </p>
+        <h3>Upload research document</h3>
+        <p>Best results come from full-text PDF papers with methodology, results, and conclusion sections.</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -322,7 +481,7 @@ with st.spinner("Extracting text from PDF..."):
     extracted_text = extract_pdf_text(uploaded_file)
 
 if not extracted_text.strip():
-    st.error("No readable text was found in this PDF.")
+    st.error("No readable text was found in this PDF. It may be scanned or image-based.")
     st.stop()
 
 with st.expander("Preview extracted text"):
@@ -345,123 +504,39 @@ st.markdown('<div class="section-title">Research Analysis Dashboard</div>', unsa
 metric_col1, metric_col2, metric_col3 = st.columns(3)
 
 with metric_col1:
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">Paper Topic</div>
-            <div class="metric-value">{html_value(result.get("paper_topic"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_metric_card("Paper Topic", result.get("paper_topic"))
 
 with metric_col2:
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">Research Type</div>
-            <div class="metric-value">{html.escape(research_type)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_metric_card("Research Type", research_type)
 
 with metric_col3:
-    st.markdown(
-        f"""
-        <div class="metric-card">
-            <div class="metric-label">Dataset / Sample</div>
-            <div class="metric-value">{html_value(result.get("dataset"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_metric_card("Dataset / Sample", result.get("dataset"))
 
 st.markdown('<div class="section-title">Paper Overview</div>', unsafe_allow_html=True)
 
 overview_col1, overview_col2 = st.columns(2)
 
 with overview_col1:
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Research Aim</div>
-            <div class="card-text">{html_value(result.get("research_aim"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Methodology</div>
-            <div class="card-text">{html_value(result.get("methodology"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card("Research Aim", result.get("research_aim"))
+    render_card("Methodology", result.get("methodology"))
 
 with overview_col2:
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Dataset / Sample</div>
-            <div class="card-text">{html_value(result.get("dataset"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card("Dataset / Sample", result.get("dataset"))
 
     if is_ai_paper(result):
-        st.markdown(
-            f"""
-            <div class="section-card">
-                <div class="card-title">AI Model / Architecture</div>
-                <div class="card-text">{html_value(result.get("ai_model_architecture"), "Not applicable")}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        render_card("AI Model / Architecture", clean_value(result.get("ai_model_architecture"), "Not applicable"))
     else:
-        st.markdown(
-            f"""
-            <div class="section-card">
-                <div class="card-title">Overall Summary</div>
-                <div class="card-text">{html_value(result.get("overall_summary"))}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        render_card("Overall Summary", result.get("overall_summary"))
 
 st.markdown('<div class="section-title">Results and Study Details</div>', unsafe_allow_html=True)
 
 result_col1, result_col2 = st.columns([1.25, 1])
 
 with result_col1:
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Key Results</div>
-            <div class="card-text">{html_value(result.get("key_results"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card(get_results_title(research_type), result.get("key_results"))
 
 with result_col2:
-    study_details = build_study_details(result, metrics)
-
-    for detail, value in study_details:
-        st.markdown(
-            f"""
-            <div class="detail-card">
-                <div class="detail-label">{html.escape(str(detail))}</div>
-                <div class="detail-value">{html.escape(str(value))}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    render_detail_panel(build_study_details(result, metrics))
 
 st.markdown(
     '<div class="section-title">Find Similar Papers</div>',
@@ -520,29 +595,23 @@ if st.button("Search Related Literature", use_container_width=True):
 
             related_papers.append(
                 {
-                    "Title": paper.get("title", "Not available"),
+                    "Title": html.escape(str(paper.get("title", "Not available"))),
                     "Year": paper.get("year", "Not available"),
-                    "Authors": author_names if author_names else "Not available",
-                    "Venue": paper.get("venue", "Not available"),
+                    "Authors": html.escape(author_names if author_names else "Not available"),
+                    "Venue": html.escape(str(paper.get("venue", "Not available"))),
                     "Citations": paper.get("citationCount", 0),
-                    "Source": paper.get("source", "Not available"),
-                    "Link": paper.get("link", paper.get("url", ""))
+                    "Source": html.escape(str(paper.get("source", "Not available"))),
+                    "Link": paper.get("link", html.escape(str(paper.get("url", ""))))
                 }
             )
 
         papers_df = pd.DataFrame(related_papers)
-        
-        st.markdown(
-    papers_df.to_html(escape=False, index=False),
-    unsafe_allow_html=True
-)
+        render_papers_table(papers_df)
 
-       
     else:
         st.warning(
             "No related papers found with the selected filters. Try an earlier year or broader query."
         )
-
 
 st.markdown(
     """
