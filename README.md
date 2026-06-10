@@ -66,8 +66,8 @@ The application adapts its summaries based on the type of paper being analyzed, 
 Clone the repository:
 
 ```bash
-git clone https://github.com/evakonstantinova/mri-research-assistant.git
-cd mri-research-assistant
+git clone https://github.com/evakonstantinova/ai-research-assistant.git
+cd ai-research-assistant
 ```
 
 Install dependencies:
@@ -93,7 +93,7 @@ streamlit run app.py
 ## Project Structure
 
 ```text
-mri-research-assistant/
+ai-research-assistant/
 │
 ├── app.py
 ├── ai_analyzer.py
