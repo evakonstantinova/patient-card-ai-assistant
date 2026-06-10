@@ -118,7 +118,7 @@
     }
 
     .card-title {
-        font-size: 1.02rem;
+        font-size: 0.96rem;
         font-weight: 875;
         color: var(--text);
         margin-bottom: 0.7rem;
@@ -126,7 +126,7 @@
     }
 
     .card-text {
-        font-size: 0.97rem;
+        font-size: 0.96rem;
         line-height: 1.7;
         color: #334155;
         white-space: normal;
@@ -176,7 +176,7 @@
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
-        font-size: 0.92rem;
+        font-size: 0.96rem;
     }
 
     .papers-table th {

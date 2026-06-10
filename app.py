@@ -10,6 +10,12 @@ from literature_search import search_semantic_scholar
 
 load_dotenv()
 
+st.set_page_config(
+    page_title="ResearchIQ",
+    page_icon="📊",
+    layout="wide"
+)
+
 def load_css():
     with open("styles.css") as f:
         st.markdown(
@@ -27,11 +33,7 @@ DEFAULT_SEARCH_QUERIES = [
     "systematic review related topic"
 ]
 
-st.set_page_config(
-    page_title="ResearchIQ",
-    page_icon="📊",
-    layout="wide"
-)
+
 
 
 def clean_value(value, fallback="Not clearly stated"):
