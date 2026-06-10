@@ -526,19 +526,18 @@ if st.button("Search Related Literature", use_container_width=True):
                     "Venue": paper.get("venue", "Not available"),
                     "Citations": paper.get("citationCount", 0),
                     "Source": paper.get("source", "Not available"),
-                    "URL": paper.get("url", "")
+                    "Link": paper.get("link", paper.get("url", ""))
                 }
             )
 
         papers_df = pd.DataFrame(related_papers)
+        
+        st.markdown(
+    papers_df.to_html(escape=False, index=False),
+    unsafe_allow_html=True
+)
 
-        st.dataframe(
-            papers_df,
-            use_container_width=True,
-            hide_index=True,
-            height=450
-        )
-
+       
     else:
         st.warning(
             "No related papers found with the selected filters. Try an earlier year or broader query."
