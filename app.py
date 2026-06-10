@@ -150,7 +150,31 @@ st.markdown(
         white-space: normal;
         overflow-wrap: break-word;
     }
+     
+     .detail-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.9rem;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
 
+.detail-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.45rem;
+}
+
+.detail-value {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #0f172a;
+    overflow-wrap: break-word;
+}
     .footer-note {
         margin-top: 2rem;
         font-size: 0.85rem;
@@ -206,84 +230,48 @@ def build_study_details(result, metrics):
     research_type = clean_value(result.get("research_type"))
 
     if "AI / Machine Learning" in research_type:
-        return pd.DataFrame(
-            [
-                {"Detail": "AI Model / Architecture", "Value": clean_value(result.get("ai_model_architecture"), "Not applicable")},
-                {"Detail": "Accuracy", "Value": clean_value(metrics.get("accuracy"), "Not clearly stated")},
-                {"Detail": "F1 Score", "Value": clean_value(metrics.get("f1_score"), "Not clearly stated")},
-                {"Detail": "Precision", "Value": clean_value(metrics.get("precision"), "Not clearly stated")},
-                {"Detail": "Recall", "Value": clean_value(metrics.get("recall"), "Not clearly stated")},
-                {"Detail": "Parameters", "Value": clean_value(metrics.get("parameters"), "Not clearly stated")},
-                {"Detail": "Hardware / Simulation", "Value": clean_value(metrics.get("hardware_or_simulation"), "Not clearly stated")},
-            ]
-        )
+        return [
+            ("Evaluation Metrics", f"Accuracy: {clean_value(metrics.get('accuracy'))}; F1: {clean_value(metrics.get('f1_score'))}; Precision: {clean_value(metrics.get('precision'))}; Recall: {clean_value(metrics.get('recall'))}"),
+            ("Model Complexity", clean_value(metrics.get("parameters"), "Not clearly stated")),
+            ("Execution Setting", clean_value(metrics.get("hardware_or_simulation"), "Not clearly stated")),
+            ("Limitations", clean_value(result.get("limitations"))),
+        ]
 
     if "Qualitative" in research_type:
-        return pd.DataFrame(
-            [
-                {"Detail": "Research Type", "Value": research_type},
-                {"Detail": "Participants / Sample", "Value": clean_value(result.get("dataset"))},
-                {"Detail": "Data Collection", "Value": clean_value(result.get("methodology"))},
-                {"Detail": "Main Themes / Findings", "Value": clean_value(result.get("key_results"))},
-                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
-            ]
-        )
+        return [
+            ("Analysis Approach", clean_value(result.get("methodology"))),
+            ("Limitations", clean_value(result.get("limitations"))),
+            ("Research Gap", clean_value(result.get("research_gap"))),
+        ]
 
     if "Survey" in research_type:
-        return pd.DataFrame(
-            [
-                {"Detail": "Research Type", "Value": research_type},
-                {"Detail": "Sample / Respondents", "Value": clean_value(result.get("dataset"))},
-                {"Detail": "Survey Method", "Value": clean_value(result.get("methodology"))},
-                {"Detail": "Main Results", "Value": clean_value(result.get("key_results"))},
-                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
-            ]
-        )
+        return [
+            ("Measured Outcomes", clean_value(result.get("key_results"))),
+            ("Analysis Method", clean_value(result.get("methodology"))),
+            ("Limitations", clean_value(result.get("limitations"))),
+            ("Research Gap", clean_value(result.get("research_gap"))),
+        ]
 
     if "Systematic Literature Review" in research_type:
-        return pd.DataFrame(
-            [
-                {"Detail": "Research Type", "Value": research_type},
-                {"Detail": "Studies / Sources Reviewed", "Value": clean_value(result.get("dataset"))},
-                {"Detail": "Review Method", "Value": clean_value(result.get("methodology"))},
-                {"Detail": "Main Findings", "Value": clean_value(result.get("key_results"))},
-                {"Detail": "Research Gap", "Value": clean_value(result.get("research_gap"))},
-            ]
-        )
-
-    if "Experimental" in research_type or "Quantitative" in research_type:
-        return pd.DataFrame(
-            [
-                {"Detail": "Research Type", "Value": research_type},
-                {"Detail": "Dataset / Sample", "Value": clean_value(result.get("dataset"))},
-                {"Detail": "Experimental Design / Method", "Value": clean_value(result.get("methodology"))},
-                {"Detail": "Key Results", "Value": clean_value(result.get("key_results"))},
-                {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
-            ]
-        )
+        return [
+            ("Evidence Base", clean_value(result.get("dataset"))),
+            ("Synthesis Method", clean_value(result.get("methodology"))),
+            ("Limitations", clean_value(result.get("limitations"))),
+            ("Research Gap", clean_value(result.get("research_gap"))),
+        ]
 
     if "Mixed Methods" in research_type:
-      return pd.DataFrame(
-[
-{"Detail": "Research Type", "Value": research_type},
-{"Detail": "Dataset / Participants", "Value": clean_value(result.get("dataset"))},
-{"Detail": "Mixed Methods Design", "Value": clean_value(result.get("methodology"))},
-{"Detail": "Main Findings", "Value": clean_value(result.get("key_results"))},
-{"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
-]
-)
-
-
-    return pd.DataFrame(
-        [
-            {"Detail": "Research Type", "Value": research_type},
-            {"Detail": "Dataset / Sample", "Value": clean_value(result.get("dataset"))},
-            {"Detail": "Methodology", "Value": clean_value(result.get("methodology"))},
-            {"Detail": "Key Results", "Value": clean_value(result.get("key_results"))},
-            {"Detail": "Limitations", "Value": clean_value(result.get("limitations"))},
+        return [
+            ("Methods Integration", clean_value(result.get("methodology"))),
+            ("Limitations", clean_value(result.get("limitations"))),
+            ("Research Gap", clean_value(result.get("research_gap"))),
         ]
-    )
 
+    return [
+        ("Limitations", clean_value(result.get("limitations"))),
+        ("Research Gap", clean_value(result.get("research_gap"))),
+    ]
+    
 st.markdown(
     """
     <div class="hero">
@@ -462,111 +450,100 @@ with result_col1:
     )
 
 with result_col2:
-    study_details_df = build_study_details(result, metrics)
-    study_details_df["Value"] = study_details_df["Value"].astype(str)
+    study_details = build_study_details(result, metrics)
 
-st.dataframe(
-    study_details_df,
-    use_container_width=True,
-    hide_index=True,
-    height=450
+    for detail, value in study_details:
+        st.markdown(
+            f"""
+            <div class="detail-card">
+                <div class="detail-label">{html.escape(str(detail))}</div>
+                <div class="detail-value">{html.escape(str(value))}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+st.markdown(
+    '<div class="section-title">Find Similar Papers</div>',
+    unsafe_allow_html=True
 )
 
-st.markdown('<div class="section-title">Literature Review Support</div>', unsafe_allow_html=True)
+search_queries = result.get("recommended_search_queries", []) or DEFAULT_SEARCH_QUERIES
 
-tab_note, tab_search = st.tabs([
-    "Research Gap & Literature Note",
-    "Find Similar Papers"
-])
+selected_query = st.selectbox(
+    "AI-generated search query",
+    search_queries
+)
 
-with tab_note:
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Research Gap</div>
-            <div class="card-text">{html_value(result.get("research_gap"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
+filter_col1, filter_col2, filter_col3 = st.columns(3)
+
+with filter_col1:
+    from_year = st.number_input(
+        "From year",
+        min_value=2015,
+        max_value=2026,
+        value=2018
     )
 
-    st.markdown(
-        f"""
-        <div class="section-card">
-            <div class="card-title">Literature Review Note</div>
-            <div class="card-text">{html_value(result.get("literature_review_note"))}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
+with filter_col2:
+    min_citations = st.number_input(
+        "Minimum citations",
+        min_value=0,
+        max_value=1000,
+        value=0
     )
 
-with tab_search:
-    search_queries = result.get("recommended_search_queries", []) or DEFAULT_SEARCH_QUERIES
-
-    selected_query = st.selectbox(
-        "AI-generated search query",
-        search_queries
+with filter_col3:
+    result_limit = st.selectbox(
+        "Number of papers",
+        [5, 10, 15, 20],
+        index=1
     )
 
-    filter_col1, filter_col2, filter_col3 = st.columns(3)
-
-    with filter_col1:
-        from_year = st.number_input(
-            "From year",
-            min_value=2015,
-            max_value=2026,
-            value=2018
+if st.button("Search Related Literature", use_container_width=True):
+    with st.spinner("Searching related literature..."):
+        papers = search_semantic_scholar(
+            selected_query,
+            limit=result_limit,
+            from_year=from_year,
+            min_citations=min_citations
         )
 
-    with filter_col2:
-        min_citations = st.number_input(
-            "Minimum citations",
-            min_value=0,
-            max_value=1000,
-            value=0
-        )
+    if papers:
+        related_papers = []
 
-    with filter_col3:
-        result_limit = st.selectbox(
-            "Number of papers",
-            [5, 10, 15, 20],
-            index=1
-        )
-
-    if st.button("Search Related Literature", use_container_width=True):
-        with st.spinner("Searching related literature..."):
-            papers = search_semantic_scholar(
-                selected_query,
-                limit=result_limit,
-                from_year=from_year,
-                min_citations=min_citations
+        for paper in papers:
+            authors = paper.get("authors", []) or []
+            author_names = ", ".join(
+                [author.get("name", "") for author in authors[:3] if author.get("name")]
             )
 
-        if papers:
-            related_papers = []
+            related_papers.append(
+                {
+                    "Title": paper.get("title", "Not available"),
+                    "Year": paper.get("year", "Not available"),
+                    "Authors": author_names if author_names else "Not available",
+                    "Venue": paper.get("venue", "Not available"),
+                    "Citations": paper.get("citationCount", 0),
+                    "Source": paper.get("source", "Not available"),
+                    "URL": paper.get("url", "")
+                }
+            )
 
-            for paper in papers:
-                authors = paper.get("authors", []) or []
-                author_names = ", ".join(
-                    [author.get("name", "") for author in authors[:3] if author.get("name")]
-                )
+        papers_df = pd.DataFrame(related_papers)
 
-                related_papers.append(
-                    {
-                        "Title": paper.get("title", "Not available"),
-                        "Year": paper.get("year", "Not available"),
-                        "Authors": author_names if author_names else "Not available",
-                        "Venue": paper.get("venue", "Not available"),
-                        "Citations": paper.get("citationCount", 0),
-                        "Source": paper.get("source", "Not available"),
-                        "URL": paper.get("url", "")
-                    }
-                )
+        st.dataframe(
+            papers_df,
+            use_container_width=True,
+            hide_index=True,
+            height=450
+        )
 
-            papers_df = pd.DataFrame(related_papers)
-            st.dataframe(papers_df, use_container_width=True, hide_index=True)
-        else:
-            st.warning("No related papers found with the selected filters. Try an earlier year or broader query.")
+    else:
+        st.warning(
+            "No related papers found with the selected filters. Try an earlier year or broader query."
+        )
+
 
 st.markdown(
     """
